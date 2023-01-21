@@ -1,1 +1,11 @@
 theme: jekyll-theme-midnight
+title: root💀n16hth4wk-sec:~#
+description: TRY Harder!
+show_downloads: false
+show_repo: false
+
+gems:
+- jekyll-sitemap
+
+whitelist:
+- jekyll-sitemap
