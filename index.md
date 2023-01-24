@@ -16,7 +16,7 @@ title: Home
 - **My Name:**    `HOGNAGLO komi Sergio`
 - **Known as:**   `manas3`
 - **What Do I Do:**  `Adversary Simulation / Pentesting / Red Teaming / CTF `
-- **Twitter:**    `https://twitter.com/manas3`
+- **Twitter:**    `https://twitter.com/manas3c`
 - **GitHub:**     `https://github.com/manas3c`
 
 * * *
