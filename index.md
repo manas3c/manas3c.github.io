@@ -20,10 +20,10 @@ Hi ! Welcome To My Cyber Security Blog My Name is manas3 I Posts here some Hacki
 <br>
 <p><strong>Name :</strong> <a href="#">HOGNAGLO Komi Sergio</a></p>
 <p><strong>Known as :</strong> <a href="#">manas3</a></p>
-<p><strong>What Do I Do :</strong> <a href="#">CTF / Red Teaming / Penetration tester / Adversary Simulation</a></p>
+<p><strong>What Do I Do :</strong> <a href="#">Red Teaming / Penetration tester / CTF's</a></p>
 <p><strong>GitHub :</strong> <a href="https://github.com/manas3c">github.com/manas3c</a></p>
 <p><strong>Twitter :</strong> <a href="https://twitter.com/manas3c">twitter.com/manas3c</a></p>
-<p><strong>Certification :</strong> <a href="#">OSCP, PNPT</a></p>
+<p><strong>Certification :</strong> <a href="#">PNPT , eCPPT , eCPTX(wip) , OSCP(wip) , CRTP(wip)</a></p>
 <br clear="left">
 <br clear="left">
 
