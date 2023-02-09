@@ -16,8 +16,7 @@ Hi ! Welcome To My Cyber Security Blog My Name is manas3 I Posts here some Hacki
 
 <hr>
 <br>
-<img style="padding-right: 30px;" align="left"  width="600" height="400" src="https://user-images.githubusercontent.com/123151924/217791150-19c9cd17-786e-40d6-8628-652f66152393.jpeg)
-">
+<img style="padding-right: 30px;" align="left"  width="600" height="400" src="https://user-images.githubusercontent.com/123151924/217791150-19c9cd17-786e-40d6-8628-652f66152393.jpeg">
 <br>
 <p><strong>Name :</strong> <a href="#">HOGNAGLO Komi Sergio</a></p>
 <p><strong>Known as :</strong> <a href="#">manas3</a></p>
