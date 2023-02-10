@@ -9,3 +9,11 @@ gems:
 
 whitelist:
 - jekyll-sitemap
+
+socialIcons:
+    - name: twitter
+      url: "https://twitter.com/manas3c"
+    - name: github
+      url: "https://github.com/manas3c"
+    - name: discord
+      url: "manas3#1138"
