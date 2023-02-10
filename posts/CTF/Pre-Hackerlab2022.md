@@ -346,4 +346,361 @@ CTF_b451Cr3V0438032832012
 ```
 Done!!!
 
+## Exfiltration Chall
 
+The first 300pts challenge...Thanks to `manas3` for bringing this prize to our team.
+
+```
+Exfiltration
+
+MEDIUM FORENSIC
+
+A conversation between two terrorist groups has been intercepted. It is possible that very sensitive data was transmitted during the communication.
+
+Flag : CTF_*
+```
+we were given a pcap file. Let's open it with Wireshark to see the content.
+
+A ton of DNS requests.
+
+A while ago I was watching a replay of a DEF CON presentation (the most famous hacker convention in the world) where the presenter was talking about this technique that allows to exfiltrate data through DNS requests. You have to know that in a network, the least monitored flow is the DNS flow, what an ingenious idea to steal a company's data under the nose of the engineers and their firewall army.
+
+Let's start by looking at the statistics of all this stream. The pcap file is divided into 2 types of dns requests (A and CNAME). Take a look at this site [iana.org](https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
+ or on the internet to see more about the types of dns requests and their value.
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ tshark -r capture.pcap -qz dns,tree                                                                                                 
+
+======================================================================================================================================================
+DNS:
+Topic / Item                           Count         Average       Min Val       Max Val       Rate (ms)     Percent       Burst Rate    Burst Start  
+------------------------------------------------------------------------------------------------------------------------
+--snip--
+
+ Query Type                            1550                                                    0.0141        100.00%       0.0400        12.539       
+  CNAME (Canonical NAME for an alias)  1172                                                    0.0106        75.61%        0.0200        12.284       
+  A (Host Address)                     378                                                     0.0034        24.39%        0.0200        0.000        
+ Class                                 1550                                                    0.0141        100.00%       0.0400        12.539    
+
+ --snip--
+
+```
+Let's get the data we are interested in. Tshark the command line version of wireshark does a good job. The first time I didn't notice, but as you can see there are duplicates. We will filter the type A and CNAME queries in different files
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/Exfiltration]
+└─$ tshark -r capture.pcap -Y "dns.qry.type==1" -T fields -e dns.qry.name
+89504e470d0a1a0a0000000d49484452000002f5000001cb0802000000c7b8f.hackerlab.africa
+89504e470d0a1a0a0000000d49484452000002f5000001cb0802000000c7b8f.hackerlab.africa
+09a000000017352474200aece1ce90000000467414d410000b18f0bfc610500.hackerlab.africa
+09a000000017352474200aece1ce90000000467414d410000b18f0bfc610500.hackerlab.africa
+0000097048597300000ec300000ec301c76fa86400000013744558744175746.hackerlab.africa
+0000097048597300000ec300000ec301c76fa86400000013744558744175746.hackerlab.africa
+86f7200636861726c696570792d504307794fa4000016ad49444154785eeddd.hackerlab.africa
+86f7200636861726c696570792d504307794fa4000016ad49444154785eeddd.hackerlab.africa
+db61db3a1605d0a9cb05a51e5793665c4c86d42337b2240220018ada5eeb6b2.hackerlab.africa
+db61db3a1605d0a9cb05a51e5793665c4c86d42337b2240220018ada5eeb6b2.hackerlab.africa
+6d702403c0eb61c47fedf1f00802cf20d009046be0100d2c83700401af90600.hackerlab.africa
+6d702403c0eb61c47fedf1f00802cf20d009046be0100d2c83700401af90600.hackerlab.africa
+4823df000069e41b00208d7c0300a4916f008034f20d009046be0100d2c8370.hackerlab.africa
+4823df000069e41b00208d7c0300a4916f008034f20d009046be0100d2c8370.hackerlab.africa
+0401af906004823df000069e41b00208d7c0300a4916f008034f20d009046be.hackerlab.africa
+--snip--
+```
+#### A records
+
+the A requests have been used to send an image. On the image file it says `ROCKYOU ft. l33t`
+
+```
+──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ tshark -r capture.pcap -Y "dns.qry.type==1" -T fields -e dns.qry.name | cut -d "." -f1 | uniq|xxd -r -p > file1                                      
+                                                                                                                                                              
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ file file1                  
+file1: PNG image data, 757 x 459, 8-bit/color RGB, non-interlaced
+
+```
+#### CNAME records
+
+The CNAME requests have been used to send a Zip file. 
+
+```
+──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ tshark -r capture.pcap -Y "dns.qry.type==5" -T fields -e dns.qry.name | cut -d "." -f1 | uniq|xxd -r -p > file2
+                                                                                                                                                              
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ file file2
+file2: Zip archive data, at least v2.0 to extract
+
+```
+On this one, the author of the challenge made us a big joke. We have to go through several layers of archive before we get to the file we are interested in. Can you imagine all those letters of the alphabet are actually archival extensions. Unkind isn't it?
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Stages/Exfiltration]
+└─$ unzip file2   
+Archive:  file2
+  inflating: flag.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.w.v.u.t.s.r.q.p.o.n.m.l.k.j.i.h.g.f.e.d.c.b.a.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w 
+```
+As usual, I wrote my own little script to get the job done. I wasn't going to do all that work again. I admit I could have done better. But anyway, it does the job.
+
+```
+
+┌──(kali㉿kali)-[~/…/HackerlabCTF/Stages/Exfiltration]
+└─$ cat script.sh                     
+
+unzip_all(){
+        FILE=$(ls | head -n1)
+        if file $FILE | grep "Zip archive data"; then
+                unzip $FILE
+            unzip_all
+
+        elif file $FILE | grep "XZ compressed data"; then
+                ZIPFILE=$(mv "$FILE" "${FILE%.*}.xz")
+                xz -d *.xz
+                unzip_all
+
+        elif file $FILE | grep "bzip2 compressed data"; then
+                bunzip2 $FILE
+                unzip_all
+
+        elif file $FILE | grep "gzip compressed data"; then
+                ZIPFILE=$(mv "$FILE" "${FILE%.*}.gz")
+                gunzip  *.gz
+                unzip_all
+        fi
+}
+unzip_all
+
+```
+at the end of my script I am asked to enter a password. The image was about rockyou ft l33t. I'll have to do some bruteforce.
+
+#### zip2john.py
+
+I first rename the archive I got into something easier to handle. Then with `zip2john` I can extract the hash and crack it with the all powerful `john`
+
+```
+┌──(kali㉿kali)-[~/…/HackerlabCTF/Stages/Exfiltration]
+└─$ /usr/sbin/zip2john flag.zip > hash
+```
+The clue `l33t` which could have been written `leet` tells us that we will have to make transformations on the Rockyou dictionary to find the password. I tried to find the right rule file but without success. So let's make it simple.
+
+```
+┌──(kali㉿kali)-[~/…/HackerlabCTF/Stages/Exfiltration]
+└─$ john hash                                            
+Using default input encoding: UTF-8
+Loaded 1 password hash (PKZIP [32/64])
+Will run 2 OpenMP threads
+Proceeding with single, rules:Single
+Press 'q' or Ctrl-C to abort, almost any other key for status
+Warning: Only 7 candidates buffered for the current salt, minimum 8 needed for performance.
+Warning: Only 4 candidates buffered for the current salt, minimum 8 needed for performance.
+Almost done: Processing the remaining buffered candidate passwords, if any.
+Proceeding with wordlist:/usr/share/john/password.lst, rules:Wordlist
+Proceeding with incremental:ASCII
+3c0w45           (flag.zip/flag.txt)
+1g 0:00:08:36 DONE 3/3 (2022-09-04 09:41) 0.001936g/s 5373Kp/s 5373Kc/s 5373KC/s 3c0gbi..3c0igd
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed
+
+```
+When we unzip the last archive we get a file `flag.txt` which contains a QR code that we will have to read and get the flag.
+
+```
+┌──(kali㉿kali)-[~/…/HackerlabCTF/Stages/Exfiltration]
+└─$ cat flag.txt                      
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+        ##############  ##      ##  ######  ##  ####  ##    ##############        
+        ##          ##  ##  ######            ####          ##          ##        
+        ##  ######  ##  ##  ##  ##  ####          ########  ##  ######  ##        
+        ##  ######  ##    ########  ##  ####    ######  ##  ##  ######  ##        
+        ##  ######  ##    ##  ######        ##  ####        ##  ######  ##        
+        ##          ##  ##      ##    ######  ####    ####  ##          ##        
+        ##############  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##############        
+                        ####  ######  ##      ##  ######                          
+            ######  ##  ##  ####  ####  ####  ##  ######  ######    ######        
+        ##      ##            ##  ########      ######    ##        ##            
+                ########    ####  ##  ##  ##########    ##########    ##          
+            ##        ####  ####  ##  ####    ##  ############      ##            
+          ####  ##  ####      ####  ########      ##    ####      ##              
+        ##  ########  ####  ##  ######      ##      ##      ####  ##              
+        ##      ##  ##  ##  ####      ######      ####  ##          ####          
+        ##  ##        ##########    ##########  ####          ##    ##            
+                ##  ##  ##  ##    ####      ####    ##              ####          
+        ####  ####    ##########  ##    ##  ######    ##########    ##            
+        ##  ##  ########  ##      ##        ####          ####  ####  ####        
+          ##  ##      ##########        ##  ##  ########    ##  ######            
+              ##    ##  ##  ########    ##  ##    ####    ####    ########        
+        ##        ##  ####  ##  ##  ####  ##    ####    ##        ##  ##          
+        ##  ##  ######      ##  ##    ##  ####      ##    ####    ######          
+        ##    ######      ####    ##    ##    ##  ####  ######    ######          
+        ##  ##  ##  ##      ########  ##      ##        ##########    ##          
+                        ############  ######  ####  ######      ##########        
+        ##############    ########    ####    ####  ##  ##  ##  ######            
+        ##          ##                      ##        ####      ##########        
+        ##  ######  ##  ####  ####  ########  ##  ####  ##############            
+        ##  ######  ##  ##  ####  ##    ##    ##  ##  ######  ##  ##  ##          
+        ##  ######  ##  ######      ########    ##      ####                      
+        ##          ##    ######        ##    ##  ##  ##    ####  ##              
+        ##############    ##    ####  ########      ##  ##          ####          
+                                                                                  
+
+```
+And voila!
+
+`CTF_W3lc0Me_h4CKER5_338333371819`
+
+Done!!!
+
+
+## JSFuck challenge
+
+```
+JSFuck
+
+EASY WEB JS
+Check the hackerlab website https://hackerlab.africa/
+
+Flag : CTF_*
+
+```
+Another site to visit
+
+At first sight there is nothing like a flag on the site, maybe in the source code?
+Let's take a closer look.
+
+In the source code also nothing, the attached files then? JSFuck sounds more javascript. Let's look at the javascript files of the site. 
+A file with a rather unreadable content draws the attention, probably an encoding.
+
+```
+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((!![]+[])[+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+([][[]]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+!+[]]+([]+[])[(![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]
+
+--snip--
+```
+
+since I don't even know what encoding it is I got 2 options 
+*option 1 [Cyberchef](https://gchq.github.io/CyberChef/) and option 2 [decode](https://www.dcode.fr/identification-chiffrement)*. This time I choose option 2, and since the content is quite large I copy a part that I try to identify..Bingo!!! decode says it's JSFuck.
+
+Here we are. This is a javascript code. How to run it? 
+My approach, although a bit long, i create a `.js file`, log the result of the code in a console with `console.log()` and also create an html code in which I call my javascript file and the browser does the rest.
+
+```
+cipher = [67, 85, 68, 92, 55, 49, 51, 94, 90, 56, 109, 99, 59, 50, 63, 61, 35, 37] var f = "" function xor_xor(x,y){ return x ^ y; } for (var i=0; i < cipher.length ; i++){ f+= xor_xor(cipher[i] ^ i); }
+```
+When we run the code we get a sequence of numbers,
+
+`67847095515253898249103104556349505152`
+
+A quick look at [decode](https://www.dcode.fr/identification-chiffrement) and it tells us that there is a chance that it has something to do with ascii. it proposes to decode it for us.
+
+And bingo!!!!
+
+`CTF_345YR1gh7?1234`
+
+Done!!!
+
+## Secret PDF Challenge
+
+```
+Secret PDF
+
+EASY BRUTEFORCE
+Can you open it?
+
+Flag : CTF_*
+```
+
+For this challenge we are given a pdf document that we have to read. Easy, just open it and read the flag?? Gift points.
+
+Let's open our file to get the flag and validate our gift points. 
+
+```
+ ┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/pdf]
+ └─$ evince secret.pdf  
+```
+
+Ooh We need a password to read the content of our document. I knew that they weren't the gift-giving type. 
+I know a nice tool from the john suite that can help us.
+
+### pdf2john.py or pdf2john.pl
+
+Basically the tool extracts the hash inside the encrypted pdf that we can crack with the almighty `john`.
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/pdf]
+└─$ ./pdf2john secret.pdf > hash 
+                                                                                                                                                              
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/pdf]
+└─$ cat hash 
+secret.pdf:$pdf$4*4*128*-1060*1*16*15c0aee17f397540bdec4edb020a2247*32*447e5ab472a0d9557b9f8664bb73c00900000000000000000000000000000000*32*cc34bdea75a5d9ac0346d4a2adcb39ac72d8aeb6dc275e4b187fb19d3cdd2cf1:::::secret.pdf                                                                                                                             
+```
+it should be noted that with python3 you will have rather this. 
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/pdf]
+└─$ python pdf2john secret.pdf                                         
+b'secret.pdf':b'$pdf$4*4*128*-1060*1*16*15c0aee17f397540bdec4edb020a2247*32*447e5ab472a0d9557b9f8664bb73c00900000000000000000000000000000000*32*cc34bdea75a5d9ac0346d4a2adcb39ac72d8aeb6dc275e4b187fb19d3cdd2cf1':::::b'secret.pdf'
+
+```
+ which does not work as expected.
+
+ Let's crack it quietly with john. And bingo!!! we have the password. The flag is waiting for us.
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/pdf]
+└─$ john --wordlist=/usr/share/wordlists/rockyou.txt hash
+Using default input encoding: UTF-8
+Loaded 1 password hash (PDF [MD5 SHA2 RC4/AES 32/64])
+Cost 1 (revision) is 4 for all loaded hashes
+Will run 2 OpenMP threads
+Press 'q' or Ctrl-C to abort, almost any other key for status
+MyP@ssw0rd!      (secret.pdf)
+1g 0:00:03:42 DONE (2022-09-02 08:39) 0.004485g/s 48484p/s 48484c/s 48484C/s MyPassword6..MyMayra1!
+Use the "--show --format=PDF" options to display all of the cracked passwords reliably
+Session completed
+
+```
+
+Oh no! at first sight the document is empty. what if we select the whole document? Oh well, there is a sequence of numbers at the bottom. It looks like something I know well.
+
+A quick look at [decode](https://www.dcode.fr/identification-chiffrement) and it tells us that there is a chance that it has something to do with ascii. 
+
+And voila!!!
+
+`CTF_QRC0D3T0OCT4L?!!`
+
+Done!!
+
+## Youtube challenge
+
+```
+Youtube
+
+EASY BITS
+Check the announcement video of the hackerlab https://www.youtube.com/watch?v=77yjGguVM0U
+
+Flag : CTF_*
+
+```
+once on the youtube channel and at the bottom of the video description we can see a binary sequence.
+First reflex, a decoding tool, personally I use [asciitohex](https://www.asciitohex.com/) when I already know the encoding.
+
+```
+00100001 00100001 00100001 00110010 00110011 00110110 00110001 00110001 00110010 00110110 00110010 00110111 01101001 01110100 00110000 01000111 00110001 01011111 01000110 01010100 01000011
+```
+the result we get is not directly the flag. it is upside down
+
+```
+!!!236112627it0G1_FTC
+```
+a very nice little tool from kali and it's all done!!!
+
+```
+┌──(kali㉿kali)-[~/CTFs/HackerlabCTF/Basic/youtube]
+└─$ echo '!!!236112627it0G1_FTC' | rev
+CTF_1G0ti726211632!!!         
+```
+Done!!!
