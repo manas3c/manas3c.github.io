@@ -67,7 +67,7 @@ _Capture the Flag (CTF) in computer security is an exercise in which "flags" are
 <hr>
 <hr>
 
-- [Pre-Hackerlab2022 challenges writeup's](https://manas3c.github.io/posts/CTF/Pre-Hackerlab2022.md.html) `Hackerlab2022-Pre-Qualification `
+- [Pre-Hackerlab2022 challenges writeup's](https://manas3c.github.io/posts/CTF/Pre-Hackerlab2022.html) `Hackerlab2022-Pre-Qualification `
 
 
 
