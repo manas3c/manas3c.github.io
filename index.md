@@ -26,12 +26,12 @@ Hi ! Welcome To My Cyber Security Blog My Name is manas3 I Posts here some Hacki
 
 * * *
 <h4 class="mume-header" id="articles">articles:</h4>
-_All my Articles about cyber security , hacking technique._
+_All my Articles about cyber security and hacking technique._
 <hr>
 <hr>
 
 
--[ttyshells](https://manas3c.github.io/posts/articles/ttyshells.html) ```Shells swpaning```
+-[Spawning A TTY Shell](https://manas3c.github.io/posts/articles/ttyshells.html) `Shell Spawning `
 
 
 * * *
